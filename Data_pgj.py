@@ -4,11 +4,11 @@ import seaborn as sns
 
 df = pd.read_csv("carpetasFGJ_acumulado_2025_01.csv", low_memory=False)
 df_filtrado = df[df["anio_hecho"].isin([2023, 2024, 2025])]
-#print(df.head(5))
+#print(df.head(20))
 #print(df.columns)
 #print(df_filtrado.info())
-df_filtrado_total = len(df_filtrado)
-print(f"Total de registros:  {df_filtrado_total}")
+# df_filtrado_total = len(df_filtrado)
+#print(f"Total de registros:  {df_filtrado_total}")
 
 # region Filtro
 """
@@ -27,10 +27,9 @@ print(f"datos duplicados: {datos_duplicados}")
 # endregion
 
 # region Grafica
-# delitos_alcaldia_catalogo = df["alcaldia_catalogo"].value_counts()
 """
-delitos_alcaldia_hecho = df["alcaldia_hecho"].value_counts()
-
+# delitos_alcaldia_catalogo = df["alcaldia_catalogo"].value_counts()
+delitos_alcaldia_hecho = df_filtrado["alcaldia_catalogo"].value_counts()
 # 2. Configurar el lienzo para tener 1 fila y 2 columnas de gráficas
 fig, axes = plt.subplots(figsize=(12, 6))
 sns.barplot(
@@ -39,12 +38,12 @@ sns.barplot(
     ax=axes, 
     palette="magma"
 )
-axes.set_title("Delitos por Alcaldía Hecho")
+axes.set_title("Delitos por Alcaldía Catalogo")
 axes.set_xlabel("Número de Carpetas")
 axes.set_ylabel("")
 
-#plt.tight_layout()
-#plt.show()
+plt.tight_layout()
+plt.show()
 """
 # endregion
 
@@ -63,11 +62,10 @@ print(tabla)
 # endregion
 
 # region análisis y limpieza de datos
-
+"""
 # registros con nulos y ceros
 coord_nula = df_filtrado["latitud"].isna() | df_filtrado["longitud"].isna()
 coord_con_ceros = (df_filtrado["latitud"] == 0) | (df_filtrado["longitud"] == 0)
-
 
 # rangos_fuera_de_cdmx
 lat_min, lat_max = 19.0, 19.6
@@ -92,5 +90,32 @@ print(f"Cordenadas Fuera del bounding: {fuera_cdmx.sum()}")
 print(f"Registros descartados:         {total_descarte}")
 print(f"Registros validos:             {coord_valida.sum()}")
 print(f"% de descarte geoespacial: {porcentaje_descartado:.2f}%")
+"""
+#endregion
+
+# region selección de delitos
+"""
+print(df_filtrado[["delito", "categoria_delito"]])
+bajo_impacto = df_filtrado[df_filtrado["categoria"]]
+
+bajo_impacto = df_filtrado[df_filtrado["categoria_delito"] == "DELITO DE BAJO IMPACTO"]
+conteo = bajo_impacto["delito"].value_counts()
+conteo.to_csv("delitos_de_bajo_impacto.csv", header=True)
+
+print(conteo.head(10))
+print(f"Total de registros de bajo impacto {conteo.sum()}")
+"""
+#endregion
+
+# region valores duplicados
+
+#df_filtrado.head(30).to_csv("datos.csv", header=True)
+llave = ["fecha_hecho", "hora_hecho", "delito", "latitud", "longitud"]
+validos = df_filtrado.dropna(subset=["latitud", "longitud"])
+dups_reales = validos.duplicated(subset=llave, keep=False)
+print(f"Duplicados entre registros válidos: {dups_reales.sum()}")
+#df_duplicados = df_filtrado[dups].sort_values(llave).head(30)
+#df_duplicados.to_csv("duplicados.csv", header=True)
+print(dups_reales.info())
 
 #endregion
